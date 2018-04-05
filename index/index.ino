@@ -1,5 +1,5 @@
-float cm;
-String RetString, Strname;
+float cm, Height;
+String RetString, Strname, PoleHeight_String;
 int TrigPin = 2,
     EchoPin = 3,
     StrSeg,
@@ -9,28 +9,39 @@ int TrigPin = 2,
 
 void setup(){
   Serial.begin(9600);
-  Serial.println("begin");
+  printinfo("begin");
   pinMode(TrigPin, OUTPUT);
   pinMode(EchoPin, INPUT);
  while (true){
     RetString = Serial.readString(); 
     StrSeg = RetString.indexOf(':');
     if (StrSeg != "-1"){
-      Serial.println(StrSeg);
+
       Strname = RetString.substring(0, StrSeg);
-      Serial.println(RetString);
-      Serial.println(Strname);
+
       if(Strname == "Height"){
-          PoleHeight  =  RetString.substring(StrSeg + 1, -1).toInt();
-          Serial.println("Height Setted: " + String(PoleHeight) + "cm");
+        PoleHeight_String  =  RetString.substring(StrSeg + 1, -1); //由于这玩意儿没法赋值给string，暂时瞎开一个变量凑合着用
+        if (PoleHeight_String == "auto"){ //自动模式时取5次当前位置的高度
+          printinfo("Height Auto Mode Started.");
+          for(int count = 1;count<=5;count++){
+              MeasureHeight();
+              Height += cm;
+              printinfo("Count(" + String(count) + "): " + String(Height) + "cm Added");
+              delay(50);
+          }
+          PoleHeight = Height / 5;  
+        }else {
+          PoleHeight = PoleHeight_String.toInt();
+          }
+          printinfo("Height Setted: " + String(PoleHeight) + "cm");
       }
        if(Strname == "DelayTime"){
           DelayTime  =  RetString.substring(StrSeg + 1, -1).toInt();
-          Serial.println("DelayTime Setted: " + String(DelayTime) + "ms");
+          printinfo("DelayTime Setted: " + String(DelayTime) + "ms");
        }
     }
     if (PoleHeight != 0 && DelayTime != 0) {
-      Serial.println("Data has Setted! PoleHeight is " + String(PoleHeight) + "cm and DelayTime is " + String(DelayTime) + "ms");  
+      printinfo("Data has Setted! PoleHeight is " + String(PoleHeight) + "cm and DelayTime is " + String(DelayTime) + "ms");  
       break;
     }
     delay(50);
@@ -38,6 +49,12 @@ void setup(){
 }
 
 void loop(){
+  MeasureHeight();
+  Serial.println("Height is: " +  String(cm) + "cm"); 
+  delay(DelayTime); 
+}
+
+void MeasureHeight(){
   digitalWrite(TrigPin, LOW); 
   delayMicroseconds(2);
   digitalWrite(TrigPin, HIGH);
@@ -47,6 +64,9 @@ void loop(){
   cm = pulseIn(EchoPin, HIGH) / 58; //将回波时间换算成cm
 
   cm = PoleHeight - (int(cm * 100)) / 100; //减去距离得到身高
-  Serial.println(); 
-  delay(DelayTime); 
+  return cm;
 }
+
+void printinfo(String str){
+  Serial.println("[INFO] " + str);
+  }
