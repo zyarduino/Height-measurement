@@ -10,40 +10,49 @@ int TrigPin = 2,
 void setup(){
   Serial.begin(9600);
   printinfo("begin");
-  pinMode(TrigPin, OUTPUT);
+  pinMode(TrigPin, OUTPUT); //设置Pin口模式
   pinMode(EchoPin, INPUT);
  while (true){
     RetString = Serial.readString(); 
-    StrSeg = RetString.indexOf(':');
-    if (StrSeg != "-1"){
+    StrSeg = RetString.indexOf(':'); //找到 ":" 的位置
+    if (StrSeg != "-1"){  // 也就是有这玩意儿的时候
 
-      Strname = RetString.substring(0, StrSeg);
+      Strname = RetString.substring(0, StrSeg); //获取位置0到:间的字符串
 
       if(Strname == "Height"){
+
         PoleHeight_String  =  RetString.substring(StrSeg + 1, -1); //由于这玩意儿没法赋值给string，暂时瞎开一个变量凑合着用
+
         if (PoleHeight_String == "auto"){ //自动模式时取5次当前位置的高度
           printinfo("Height Auto Mode Started.");
+
           for(int count = 1;count<=5;count++){
               MeasureHeight();
               Height += cm;
-              printinfo("Count(" + String(count) + "): " + String(Height) + "cm Added");
+              printinfo("Count(" + String(count) + "): " + String(cm) + "cm Added");
               delay(50);
           }
+
           PoleHeight = Height / 5;  
         }else {
-          PoleHeight = PoleHeight_String.toInt();
-          }
+          PoleHeight = PoleHeight_String.toInt(); //int != string，要转换一波
+        }
           printinfo("Height Setted: " + String(PoleHeight) + "cm");
       }
+
+
        if(Strname == "DelayTime"){
           DelayTime  =  RetString.substring(StrSeg + 1, -1).toInt();
           printinfo("DelayTime Setted: " + String(DelayTime) + "ms");
        }
+
     }
-    if (PoleHeight != 0 && DelayTime != 0) {
-      printinfo("Data has Setted! PoleHeight is " + String(PoleHeight) + "cm and DelayTime is " + String(DelayTime) + "ms");  
-      break;
-    }
+//    if (PoleHeight != 0 && DelayTime != 0) {
+      if(Strname == "finish"){
+        printinfo("Data has Setted! PoleHeight is " + String(PoleHeight) + "cm and DelayTime is " + String(DelayTime) + "ms");  
+        break;
+      }
+      
     delay(50);
   }
 }
@@ -69,4 +78,5 @@ void MeasureHeight(){
 
 void printinfo(String str){
   Serial.println("[INFO] " + str);
-  }
+}
+
