@@ -50,6 +50,7 @@ void setup(){
 
 void loop(){
   MeasureHeight();
+  cm = PoleHeight - (int(cm * 100)) / 100; //减去距离得到身高
   Serial.println("Height is: " +  String(cm) + "cm"); 
   delay(DelayTime); 
 }
@@ -63,7 +64,6 @@ void MeasureHeight(){
 
   cm = pulseIn(EchoPin, HIGH) / 58; //将回波时间换算成cm
 
-  cm = PoleHeight - (int(cm * 100)) / 100; //减去距离得到身高
   return cm;
 }
 
